@@ -2,6 +2,25 @@ import { Logger, QueryRunner } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Custom logger implementation for TypeORM.
+ * This logger writes query, error, slow query, schema build, migration, and log messages to a log file.
+ * The log file is created in the specified log directory, with a filename formatted as 'log-YYYY-MM-DD.log'.
+ *
+ * @remarks
+ * The log file path is obtained from the environment variable LOG_DIR, or defaults to 'logs' directory in the current working directory.
+ *
+ * @example
+ * ```typescript
+ * const logger = new MyCustomLogger();
+ * logger.logQuery('SELECT * FROM users');
+ * logger.logQueryError(new Error('Query failed'), 'SELECT * FROM users');
+ * logger.logQuerySlow(1000, 'SELECT * FROM users');
+ * logger.logSchemaBuild('Schema build completed');
+ * logger.logMigration('Migration applied');
+ * logger.log('info', 'Log message');
+ * ```
+ */
 export class MyCustomLogger implements Logger {
   logQuery(query: string, parameters?: any[], queryRunner?: QueryRunner) {
     // Call the createLogFile function to get the path of the log file

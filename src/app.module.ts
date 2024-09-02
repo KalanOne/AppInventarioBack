@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClsModule } from 'nestjs-cls';
 import { MyCustomLogger } from './typeorm/logTypeOrmConfiguration';
+import { EntitiesModule } from './entities/entities.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MyCustomLogger } from './typeorm/logTypeOrmConfiguration';
       logging: ['error', 'info', 'log', 'query', 'warn'], //EN PRODUCCION CAMBIAR EL VALOR A FALSE - muestra las consultas SQL
       logger: new MyCustomLogger(),
     }),
+    EntitiesModule,
   ],
   controllers: [],
   providers: [],
