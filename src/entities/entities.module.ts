@@ -5,6 +5,7 @@ import { Product } from './entities/product.entity';
 import { Article } from './entities/article.entity';
 import { Transaction } from './entities/transaction.entity';
 import { TransactionDetail } from './entities/transactionDetail.entity';
+import { Role } from './entities/role.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { TransactionDetail } from './entities/transactionDetail.entity';
       Article,
       Transaction,
       TransactionDetail,
+      Role,
     ]),
   ],
 })

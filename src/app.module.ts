@@ -4,10 +4,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClsModule } from 'nestjs-cls';
 import { MyCustomLogger } from './typeorm/logTypeOrmConfiguration';
 import { EntitiesModule } from './entities/entities.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { JwtGuard } from './auth/guards/jwt.guard';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './auth/guards/role.guard';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     ClsModule.forRoot({
       global: true,
       interceptor: { mount: true },
@@ -25,8 +30,19 @@ import { EntitiesModule } from './entities/entities.module';
       logger: new MyCustomLogger(),
     }),
     EntitiesModule,
+    UsersModule,
+    AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

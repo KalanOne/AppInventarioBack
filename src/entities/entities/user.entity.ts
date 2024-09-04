@@ -3,20 +3,20 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
 import { Transaction } from './transaction.entity';
+import { Role } from './role.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ unique: true })
-  username: string;
 
   @Column()
   first_name: string;
@@ -28,10 +28,14 @@ export class User {
   email: string;
 
   @Column()
-  password_hash: string;
+  password: string;
 
   @OneToMany(() => Transaction, (transaction) => transaction.user)
   transactions: Transaction[];
+
+  @ManyToMany(() => Role, (role) => role.users, { eager: true })
+  @JoinTable()
+  roles: Role[];
 
   @CreateDateColumn()
   createdAt: Date;
