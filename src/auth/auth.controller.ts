@@ -22,10 +22,6 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @Post('login')
   async login(@Request() req): Promise<LoginResponseDTO | BadRequestException> {
-    // Make time out for 10 seconds
-    setTimeout(() => {
-      console.log('Time out for 10 seconds');
-    }, 10000);
     return this.authService.login(req.user);
   }
 

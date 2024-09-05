@@ -18,8 +18,8 @@ export class Product {
   @Column()
   name: string;
 
-  @Column()
-  description: string;
+  @Column({ nullable: true })
+  description?: string;
 
   @OneToMany(() => Article, (article) => article.product)
   articles: Article[];
