@@ -15,7 +15,7 @@ export class ArticlesService {
     console.log(query);
     return await this.articlesRepository.findAndCount({
       take: query.limit,
-      skip: query.page,
+      skip: query.skip,
       order: { product: { name: 'ASC' } },
       relations: { product: true },
     });

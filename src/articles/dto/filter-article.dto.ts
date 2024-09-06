@@ -3,7 +3,7 @@ import { IsNumberString, IsOptional, IsString } from 'class-validator';
 export class FilterArticleDto {
   @IsOptional()
   @IsNumberString()
-  page: number;
+  skip: number;
 
   @IsOptional()
   @IsNumberString()
