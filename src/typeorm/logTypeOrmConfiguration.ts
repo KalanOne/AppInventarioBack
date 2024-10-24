@@ -1,6 +1,8 @@
 import { Logger, QueryRunner } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConfigService } from '@nestjs/config';
+import { ClsService } from 'nestjs-cls';
 
 /**
  * Custom logger implementation for TypeORM.
@@ -12,7 +14,7 @@ import * as path from 'path';
  *
  * @example
  * ```typescript
- * const logger = new MyCustomLogger();
+ * const logger = new MyCustomLogger(configService, cls);
  * logger.logQuery('SELECT * FROM users');
  * logger.logQueryError(new Error('Query failed'), 'SELECT * FROM users');
  * logger.logQuerySlow(1000, 'SELECT * FROM users');
@@ -22,6 +24,11 @@ import * as path from 'path';
  * ```
  */
 export class MyCustomLogger implements Logger {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly cls: ClsService,
+  ) {}
+
   logQuery(query: string, parameters?: any[], queryRunner?: QueryRunner) {
     // Call the createLogFile function to get the path of the log file
     const logFilePath = this.createLogFile();
@@ -151,7 +158,10 @@ export class MyCustomLogger implements Logger {
     const formattedDate = date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
 
     // Obtener la ruta del directorio de logs desde el archivo .env
-    const logDir = path.join(process.cwd(), process.env.LOG_DIR || 'logs');
+    const logDir = path.join(
+      process.cwd(),
+      this.configService.get('LOG_DIR') || 'logs',
+    );
 
     // Si la carpeta 'logs' no existe, crearla
     if (!fs.existsSync(logDir)) {

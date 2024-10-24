@@ -6,6 +6,7 @@ import { Article } from './entities/article.entity';
 import { Transaction } from './entities/transaction.entity';
 import { TransactionDetail } from './entities/transactionDetail.entity';
 import { Role } from './entities/role.entity';
+import { Unit } from './entities/unidad.entity';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Role } from './entities/role.entity';
       User,
       Product,
       Article,
+      Unit,
       Transaction,
       TransactionDetail,
       Role,

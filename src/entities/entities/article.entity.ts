@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -10,7 +12,7 @@ import {
   VersionColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
-import { TransactionDetail } from './transactionDetail.entity';
+import { Unit } from './unidad.entity';
 
 @Entity()
 export class Article {
@@ -29,21 +31,24 @@ export class Article {
   @Column()
   factor: number;
 
-  @OneToMany(
-    () => TransactionDetail,
-    (transactionDetail) => transactionDetail.article,
-  )
-  transactionDetails: TransactionDetail[];
+  @OneToMany(() => Unit, (unit) => unit.article)
+  units: Unit[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
   @VersionColumn()
   version: number;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ type: 'timestamptz' })
   deletedDate: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  unify() {
+    this.multiple = this.multiple.toUpperCase();
+  }
 }

@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -37,15 +39,23 @@ export class User {
   @JoinTable()
   roles: Role[];
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
   @VersionColumn()
   version: number;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ type: 'timestamptz' })
   deletedDate: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  unify() {
+    this.email = this.email.toLowerCase();
+    this.first_name = this.first_name.toUpperCase();
+    this.last_name = this.last_name.toUpperCase();
+  }
 }

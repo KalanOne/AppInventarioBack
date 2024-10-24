@@ -4,29 +4,30 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
-import { Transaction } from './transaction.entity';
-import { Unit } from './unidad.entity';
+import { Article } from './article.entity';
+import { TransactionDetail } from './transactionDetail.entity';
 
 @Entity()
-export class TransactionDetail {
+export class Unit {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Transaction, (transaction) => transaction.transactionDetails)
-  transaction: Transaction;
-
-  @ManyToOne(() => Unit, (unit) => unit.transactionDetails)
-  unit: Unit;
-
   @Column()
-  quantity: number;
+  serialNumber: string;
 
-  @Column({ nullable: true })
-  price: number;
+  @ManyToOne(() => Article, (article) => article.units)
+  article: Article;
+
+  @OneToMany(
+    () => TransactionDetail,
+    (transactionDetail) => transactionDetail.unit,
+  )
+  transactionDetails: TransactionDetail[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
