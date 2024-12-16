@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -10,6 +12,7 @@ import {
 } from 'typeorm';
 import { Transaction } from './transaction.entity';
 import { Unit } from './unidad.entity';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Entity()
 export class TransactionDetail {
@@ -22,7 +25,11 @@ export class TransactionDetail {
   @ManyToOne(() => Unit, (unit) => unit.transactionDetails)
   unit: Unit;
 
-  @Column()
+  @Column({
+    default: 1,
+    comment:
+      'Quantity of the unit, if the unit has a serial number, the quantity will be 1 forcely, if the unit does not have a serial number, the quantity can be greater than 1',
+  })
   quantity: number;
 
   @Column({ nullable: true })
@@ -39,4 +46,22 @@ export class TransactionDetail {
 
   @DeleteDateColumn({ type: 'timestamptz' })
   deletedDate: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  unify() {
+    this.price = Number(this.price.toFixed(2));
+    if (this.unit.serialNumber && this.quantity !== 1) {
+      throw new HttpException(
+        'The unit has a serial number, quantity must be 1',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (this.quantity < 1) {
+      throw new HttpException(
+        'Quantity must be greater than 0',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 }

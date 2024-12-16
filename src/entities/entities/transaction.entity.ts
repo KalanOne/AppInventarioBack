@@ -19,7 +19,7 @@ export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ enum: ['ENTRY', 'EXIT'] })
+  @Column({ enum: ['ENTRY', 'EXIT', ''] })
   transaction_type: 'ENTRY' | 'EXIT';
 
   @Column()

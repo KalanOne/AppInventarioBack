@@ -17,8 +17,8 @@ export class Unit {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  serialNumber: string;
+  @Column({ nullable: true })
+  serialNumber?: string;
 
   @ManyToOne(() => Article, (article) => article.units)
   article: Article;
