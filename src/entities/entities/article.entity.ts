@@ -19,7 +19,7 @@ export class Article {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Product, (product) => product.articles)
+  @ManyToOne(() => Product, (product) => product.articles, {eager: true})
   product: Product;
 
   @Column({ unique: true })

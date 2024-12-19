@@ -20,6 +20,11 @@ export class Unit {
   @Column({ nullable: true })
   serialNumber?: string;
 
+  @Column({
+    comment: 'Afecta o no inventario de acuerdo a salida o entrada',
+  })
+  afectation: boolean;
+
   @ManyToOne(() => Article, (article) => article.units)
   article: Article;
 

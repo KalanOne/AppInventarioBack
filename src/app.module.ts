@@ -1,23 +1,25 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ClsModule, ClsService } from 'nestjs-cls';
+import { ClsInterceptor, ClsModule, ClsService } from 'nestjs-cls';
 import { MyCustomLogger } from './typeorm/logTypeOrmConfiguration';
 import { EntitiesModule } from './entities/entities.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtGuard } from './auth/guards/jwt.guard';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { RolesGuard } from './auth/guards/role.guard';
 import { ArticlesModule } from './articles/articles.module';
 import { SearchsModule } from './searchs/searchs.module';
+import { UserInformationInterceptor } from './interceptors/user-information.interceptor';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     ClsModule.forRoot({
       global: true,
       interceptor: { mount: true },
+      middleware: { mount: true },
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService, cls: ClsService) => ({
@@ -27,10 +29,11 @@ import { SearchsModule } from './searchs/searchs.module';
         database: configService.getOrThrow('DB_NAME'),
         username: configService.getOrThrow('DB_USERNAME'),
         password: configService.getOrThrow('DB_PASSWORD'),
+        logNotifications: true,
         autoLoadEntities: true,
         synchronize: true,
         logging: ['error', 'info', 'log', 'query', 'warn'],
-        logger: new MyCustomLogger(configService, cls),
+        logger: MyCustomLogger.getInstance(configService, cls),
       }),
       inject: [ConfigService, ClsService],
     }),
@@ -49,6 +52,14 @@ import { SearchsModule } from './searchs/searchs.module';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClsInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: UserInformationInterceptor,
     },
   ],
 })
