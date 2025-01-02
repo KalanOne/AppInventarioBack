@@ -11,8 +11,8 @@ import {
   VersionColumn,
 } from 'typeorm';
 import { Transaction } from './transaction.entity';
-import { Unit } from './unidad.entity';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { Article } from './article.entity';
 
 @Entity()
 export class TransactionDetail {
@@ -22,8 +22,19 @@ export class TransactionDetail {
   @ManyToOne(() => Transaction, (transaction) => transaction.transactionDetails)
   transaction: Transaction;
 
-  @ManyToOne(() => Unit, (unit) => unit.transactionDetails)
-  unit: Unit;
+  @ManyToOne(() => Article, (article) => article.transactionDetails, {
+    eager: true,
+    cascade: true,
+  })
+  article: Article;
+
+  @Column({ nullable: true })
+  serialNumber?: string;
+
+  @Column({
+    comment: 'Afecta o no inventario de acuerdo a salida o entrada',
+  })
+  afectation: boolean;
 
   @Column({
     default: 1,
@@ -33,7 +44,7 @@ export class TransactionDetail {
   quantity: number;
 
   @Column({ nullable: true })
-  price: number;
+  price?: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
@@ -50,8 +61,8 @@ export class TransactionDetail {
   @BeforeInsert()
   @BeforeUpdate()
   unify() {
-    this.price = Number(this.price.toFixed(2));
-    if (this.unit.serialNumber && this.quantity !== 1) {
+    this.price = Number(this.price ? this.price.toFixed(2): 0);
+    if (this.serialNumber && this.quantity !== 1) {
       throw new HttpException(
         'The unit has a serial number, quantity must be 1',
         HttpStatus.BAD_REQUEST,

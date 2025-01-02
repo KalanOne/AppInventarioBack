@@ -42,7 +42,7 @@ export class ArticlesService {
             name: name ? Like(`%${name}%`) : undefined,
             description: description ? Like(`%${description}%`) : undefined,
           },
-          units: {
+          transactionDetails: {
             serialNumber: serialNumber ? Like(`%${serialNumber}%`) : undefined,
           },
         },
@@ -58,7 +58,7 @@ export class ArticlesService {
           multiple: search ? Like(`%${search}%`) : undefined,
         },
         {
-          units: {
+          transactionDetails: {
             serialNumber: search ? Like(`%${search}%`) : undefined,
           },
         },

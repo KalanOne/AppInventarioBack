@@ -12,14 +12,16 @@ import {
   VersionColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
-import { Unit } from './unidad.entity';
-
+import { TransactionDetail } from './transactionDetail.entity';
 @Entity()
 export class Article {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Product, (product) => product.articles, {eager: true})
+  @ManyToOne(() => Product, (product) => product.articles, {
+    eager: true,
+    cascade: true,
+  })
   product: Product;
 
   @Column({ unique: true })
@@ -31,8 +33,11 @@ export class Article {
   @Column()
   factor: number;
 
-  @OneToMany(() => Unit, (unit) => unit.article)
-  units: Unit[];
+  @OneToMany(
+    () => TransactionDetail,
+    (transactionDetail) => transactionDetail.article,
+  )
+  transactionDetails: TransactionDetail[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

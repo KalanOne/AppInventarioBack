@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-export { ArrayTransform, NumberTransform, BooleanTransform };
+export { ArrayTransform, NumberTransform, BooleanTransform, DateTransform };
 
 function ArrayTransform({
   each = false,
@@ -61,4 +61,8 @@ function BooleanTransform(): PropertyDecorator {
   return Transform(({ value }) => {
     return Boolean(value);
   });
+}
+
+function DateTransform(): PropertyDecorator {
+  return Transform(({ value }) => new Date(value));
 }

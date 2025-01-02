@@ -12,6 +12,7 @@ import { RolesGuard } from './auth/guards/role.guard';
 import { ArticlesModule } from './articles/articles.module';
 import { SearchsModule } from './searchs/searchs.module';
 import { UserInformationInterceptor } from './interceptors/user-information.interceptor';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { UserInformationInterceptor } from './interceptors/user-information.inte
     AuthModule,
     ArticlesModule,
     SearchsModule,
+    TransactionsModule,
   ],
   controllers: [],
   providers: [

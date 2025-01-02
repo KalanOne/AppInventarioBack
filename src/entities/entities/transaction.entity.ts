@@ -19,7 +19,7 @@ export class Transaction {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ enum: ['ENTRY', 'EXIT', ''] })
+  @Column({ enum: ['ENTRY', 'EXIT'] })
   transaction_type: 'ENTRY' | 'EXIT';
 
   @Column()
@@ -37,6 +37,7 @@ export class Transaction {
   @OneToMany(
     () => TransactionDetail,
     (transactionDetail) => transactionDetail.transaction,
+    { eager: true, cascade: true },
   )
   transactionDetails: TransactionDetail[];
 
