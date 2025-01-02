@@ -93,7 +93,7 @@ export class Unit {
   afectation: boolean;
 
   @IsNumber({ allowInfinity: false, allowNaN: false })
-  @IsOptional()
+  @IsOptional({ always: true })
   productId?: number | undefined;
 
   @IsNumber({ allowInfinity: false, allowNaN: false })

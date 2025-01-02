@@ -21,6 +21,10 @@ export class TransactionsService {
 
   async createTransaction(createTransactionDto: CreateTransactionDto) {
     return this.dataSource.transaction(async (manager) => {
+      console.log(
+        createTransactionDto.units[0].articleId,
+        createTransactionDto.units[0].productId,
+      );
       const transactionDetails: TransactionDetail[] = [];
       const transaction = new Transaction();
       transaction.folio_number = createTransactionDto.folio;
@@ -37,14 +41,14 @@ export class TransactionsService {
         const newArticle = new Article();
         const transactionDetail = new TransactionDetail();
 
-        if (unit.productId) {
+        if (unit.productId || unit.productId > 0) {
           newProduct.id = unit.productId;
         }
         newProduct.name = unit.name;
         newProduct.description = unit.description;
         // const productSaved = await manager.save(newProduct);
 
-        if (unit.articleId) {
+        if (unit.articleId || unit.articleId > 0) {
           newArticle.id = unit.articleId;
         }
         newArticle.barcode = unit.barcode;
@@ -53,7 +57,9 @@ export class TransactionsService {
         newArticle.product = newProduct;
         // const articleSaved = await manager.save(newArticle);
 
-        transactionDetail.serialNumber = unit.serial;
+        if (unit.serial) {
+          transactionDetail.serialNumber = unit.serial;
+        }
         transactionDetail.afectation = unit.afectation;
         transactionDetail.article = newArticle;
         transactionDetail.quantity = unit.quantity;
