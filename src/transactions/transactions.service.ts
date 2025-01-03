@@ -4,27 +4,26 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTransactionDto, Unit } from './dto/create-transaction.dto';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Product } from 'src/entities/entities/product.entity';
 import { Article } from 'src/entities/entities/article.entity';
 import { TransactionDetail } from 'src/entities/entities/transactionDetail.entity';
 import { Transaction } from 'src/entities/entities/transaction.entity';
 import { ClsService } from 'nestjs-cls';
 import { User } from 'src/entities/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly cls: ClsService,
+    @InjectRepository(Transaction)
+    private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
   async createTransaction(createTransactionDto: CreateTransactionDto) {
     return this.dataSource.transaction(async (manager) => {
-      console.log(
-        createTransactionDto.units[0].articleId,
-        createTransactionDto.units[0].productId,
-      );
       const transactionDetails: TransactionDetail[] = [];
       const transaction = new Transaction();
       transaction.folio_number = createTransactionDto.folio;
@@ -74,7 +73,6 @@ export class TransactionsService {
         }
       }
       transaction.transactionDetails = transactionDetails;
-      console.log(transaction);
       return manager.save(Transaction, transaction);
     });
   }
@@ -133,31 +131,48 @@ export class TransactionsService {
           `The article ${unit.name} ${unit.barcode} has not been exited before when it is not an afectation`,
         );
       } else {
+        let productId = unit.productId;
+        if (!unit.productId) {
+          const article = await manager.findOne(Article, {
+            where: { barcode: unit.barcode },
+            relations: ['product'],
+          });
+          productId = article.product.id;
+        }
+        if (!productId) {
+          throw new NotFoundException(
+            `The article ${unit.name} - ${unit.barcode} does not have a product associated with it`,
+          );
+        }
         const totalOutside: { total: number } =
           await transactionDetailsRepository
             .createQueryBuilder('td')
             .select(
               `COALESCE(
-                  SUM(CASE
-                      WHEN t.transaction_type = 'EXIT' AND td.afectation = FALSE THEN td.quantity
-                      ELSE 0
-                  END), 0
-              ) -
-              COALESCE(
-                  SUM(CASE
-                      WHEN t.transaction_type = 'ENTRY' AND td.afectation = FALSE THEN td.quantity
-                      ELSE 0
-                  END), 0
-              ) AS total`,
+                    SUM(CASE
+                        WHEN t.transaction_type = 'EXIT' AND td.afectation = FALSE THEN td.quantity * a.factor
+                        ELSE 0
+                    END), 0
+                ) - 
+                COALESCE(
+                    SUM(CASE
+                        WHEN t.transaction_type = 'ENTRY' AND td.afectation = FALSE THEN td.quantity * a.factor
+                        ELSE 0
+                    END), 0
+                ) AS total`,
             )
             .innerJoin('td.transaction', 't')
             .innerJoin('td.article', 'a')
-            .where('a.barcode = :barcode', { barcode: unit.barcode })
+            .innerJoin('a.product', 'p')
+            .where('p.id = :productId', { productId: productId })
             .getRawOne();
 
-        if (!totalOutside.total || totalOutside.total < unit.quantity) {
+        if (
+          !totalOutside.total ||
+          totalOutside.total < unit.quantity * unit.factor
+        ) {
           throw new ConflictException(
-            `The article ${unit.name} - ${unit.barcode} has insufficient unmatched exits for this entry. Total outside without afectation: ${totalOutside.total}`,
+            `The product ${unit.name} has insufficient unmatched exits for this entry. Total outside without afectation: ${totalOutside.total}`,
           );
         }
       }
@@ -186,28 +201,51 @@ export class TransactionsService {
         }
       }
     } else {
+      let productId = unit.productId;
+      if (!unit.productId) {
+        const article = await manager.findOne(Article, {
+          where: { barcode: unit.barcode },
+          relations: ['product'],
+        });
+        productId = article.product.id;
+      }
+      if (!productId) {
+        throw new NotFoundException(
+          `The article ${unit.name} - ${unit.barcode} does not have a product associated with it`,
+        );
+      }
       const totalAvailable: { total: number } =
         await transactionDetailsRepository
           .createQueryBuilder('td')
           .select(
             `COALESCE(
-            SUM(CASE
-                WHEN t.transaction_type = 'ENTRY' THEN td.quantity
-                WHEN t.transaction_type = 'EXIT' THEN -td.quantity
-                ELSE 0
-            END), 0
-        ) AS total`,
+                SUM(CASE
+                    WHEN t.transaction_type = 'ENTRY' THEN td.quantity * a.factor
+                    WHEN t.transaction_type = 'EXIT' THEN -td.quantity * a.factor
+                    ELSE 0
+                END), 0
+              ) AS total`,
           )
           .innerJoin('td.transaction', 't')
           .innerJoin('td.article', 'a')
-          .where('a.barcode = :barcode', { barcode: unit.barcode })
-          .andWhere('td.serialNumber IS NULL')
+          .innerJoin('a.product', 'p')
+          .where('p.id = :productId', { productId: productId })
           .getRawOne();
-      if (!totalAvailable.total || totalAvailable.total < unit.quantity) {
+
+      if (
+        !totalAvailable.total ||
+        totalAvailable.total < unit.quantity * unit.factor
+      ) {
         throw new ConflictException(
-          `The article ${unit.name} - ${unit.barcode} does not have enough inventory for the requested exit. Total available: ${totalAvailable.total}`,
+          `The product ${unit.name} does not have enough inventory for the requested exit. Total available: ${totalAvailable.total}`,
         );
       }
     }
+  }
+
+  async getTransaction(id: number) {
+    return this.transactionRepository.findOne({ where: { id },
+      // loadEagerRelations: true
+    });
   }
 }

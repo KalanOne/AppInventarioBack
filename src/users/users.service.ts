@@ -7,7 +7,7 @@ import { DeleteResult, Repository } from 'typeorm';
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -20,6 +20,10 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User> {
     return await this.usersRepository.findOne({ where: { email } });
+  }
+
+  async findByEmailAndPassword(email: string, password: string): Promise<User> {
+    return await this.usersRepository.findOne({ where: { email, password } });
   }
 
   async create(user: User): Promise<User> {

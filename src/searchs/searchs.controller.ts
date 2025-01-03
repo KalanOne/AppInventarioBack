@@ -15,4 +15,9 @@ export class SearchsController {
   async searchArticles(@Query() query: SearchArticleDto) {
     return await this.searchsService.searchArticles(query);
   }
+
+  @Get('transactions/list')
+  async getTransactions() {
+    return await this.searchsService.getTransactionsList();
+  }
 }

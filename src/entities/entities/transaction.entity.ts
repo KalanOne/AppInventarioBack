@@ -25,7 +25,7 @@ export class Transaction {
   @Column()
   transaction_date: Date;
 
-  @ManyToOne(() => User, (user) => user.transactions)
+  @ManyToOne(() => User, (user) => user.transactions, { eager: true })
   user: User;
 
   @Column({ unique: true })

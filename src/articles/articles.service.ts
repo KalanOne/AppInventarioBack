@@ -78,13 +78,15 @@ export class ArticlesService {
     });
     product.name = data.name;
     product.description = data.description;
+    article.product = product;
     article.barcode = data.barcode;
     article.factor = data.factor;
     article.multiple = data.multiple;
     return this.dataSource.transaction(async (manager) => {
+      const response = await manager.save(article);
       return {
-        product: await manager.save(product),
-        article: await manager.save(article),
+        product: response.product,
+        article: response,
       };
     });
   }
@@ -97,12 +99,12 @@ export class ArticlesService {
       }
       product.name = createArticleDto.name;
       product.description = createArticleDto.description;
-      const savedProduct = await manager.save(product);
+      // const savedProduct = await manager.save(product);
       const article = new Article();
       article.barcode = createArticleDto.barcode;
       article.factor = createArticleDto.factor;
       article.multiple = createArticleDto.multiple;
-      article.product = savedProduct;
+      article.product = product;
       return await manager.save(article);
     });
   }
