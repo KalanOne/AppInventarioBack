@@ -244,8 +244,6 @@ export class TransactionsService {
   }
 
   async getTransaction(id: number) {
-    return this.transactionRepository.findOne({ where: { id },
-      // loadEagerRelations: true
-    });
+    return this.transactionRepository.findOne({ where: { id } });
   }
 }

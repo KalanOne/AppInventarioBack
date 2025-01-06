@@ -15,7 +15,6 @@ export class TransactionsController {
 
   @Get(':id')
   async getTransaction(@Param('id') id: number) {
-    console.log('id', id);
     return await this.transactionsService.getTransaction(id);
   }
 }
