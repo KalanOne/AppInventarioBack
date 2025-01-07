@@ -77,7 +77,8 @@ export class InventoryService {
         .select(
           `COALESCE(
               SUM(CASE
-                  WHEN t.transaction_type = 'ENTRY' THEN td.quantity * a.factor
+                  WHEN t.transaction_type = 'ENTRY' AND td.afectation = TRUE THEN td.quantity * a.factor
+                  WHEN t.transaction_type = 'ENTRY' AND td.afectation = FALSE THEN 0
                   WHEN t.transaction_type = 'EXIT' AND td.afectation = FALSE THEN 0
                   WHEN t.transaction_type = 'EXIT' AND td.afectation = TRUE THEN -td.quantity * a.factor
                   ELSE 0
