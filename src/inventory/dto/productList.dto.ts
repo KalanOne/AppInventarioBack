@@ -30,6 +30,10 @@ export class FilterProductDto {
 
   @IsOptional()
   @IsString()
+  almacen?: string;
+
+  @IsOptional()
+  @IsString()
   serialNumber?: string;
 
   @IsOptional()

@@ -53,6 +53,7 @@ export class TransactionsService {
         newArticle.barcode = unit.barcode;
         newArticle.multiple = unit.multiple;
         newArticle.factor = unit.factor;
+        newArticle.almacen = unit.almacen;
         newArticle.product = newProduct;
         // const articleSaved = await manager.save(newArticle);
 

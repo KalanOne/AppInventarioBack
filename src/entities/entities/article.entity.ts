@@ -33,6 +33,9 @@ export class Article {
   @Column()
   factor: number;
 
+  @Column({ nullable: true })
+  almacen?: string;
+
   @OneToMany(
     () => TransactionDetail,
     (transactionDetail) => transactionDetail.article,
@@ -55,5 +58,6 @@ export class Article {
   @BeforeUpdate()
   unify() {
     this.multiple = this.multiple.toUpperCase();
+    this.almacen = this.almacen?.toUpperCase();
   }
 }

@@ -26,6 +26,7 @@ export class InventoryService {
       name,
       serialNumber,
       id,
+      almacen,
     } = query;
 
     return this.productRepository.findAndCount({
@@ -36,6 +37,7 @@ export class InventoryService {
           articles: {
             barcode: barcode ? Like(`%${barcode}%`) : undefined,
             factor,
+            almacen: almacen ? Like(`%${almacen}%`) : undefined,
             multiple: multiple ? Like(`%${multiple}%`) : undefined,
             transactionDetails: {
               serialNumber: serialNumber
@@ -52,6 +54,9 @@ export class InventoryService {
         },
         {
           articles: { multiple: search ? Like(`%${search}%`) : undefined },
+        },
+        {
+          articles: { almacen: search ? Like(`%${search}%`) : undefined },
         },
         {
           articles: {

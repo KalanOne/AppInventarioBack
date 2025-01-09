@@ -85,6 +85,10 @@ export class Unit {
   @IsNotEmpty()
   factor: number;
 
+  @IsOptional()
+  @IsString()
+  almacen?: string;
+
   @IsNumber({ allowInfinity: false, allowNaN: false })
   @IsNotEmpty()
   quantity: number;

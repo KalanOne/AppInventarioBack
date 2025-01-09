@@ -4,12 +4,15 @@ import { DeleteResult, Repository } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ClsService } from 'nestjs-cls';
+import { UserUpdateDto } from './dto/user-update.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly clsService: ClsService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -61,5 +64,28 @@ export class UsersService {
 
   async remove(id: number): Promise<DeleteResult> {
     return await this.usersRepository.delete(id);
+  }
+
+  async findBySession(): Promise<User> {
+    return this.usersRepository.findOne({
+      where: { id: this.clsService.get<User>('user').id },
+    });
+  }
+
+  async updateUser(id: number, userUpdateDto: UserUpdateDto) {
+    const user = await this.usersRepository.findOneOrFail({ where: { id } });
+    if (userUpdateDto.password) {
+      user.password = await bcrypt.hash(userUpdateDto.password, 10);
+    }
+    if (userUpdateDto.first_name) {
+      user.first_name = userUpdateDto.first_name;
+    }
+    if (userUpdateDto.last_name) {
+      user.last_name = userUpdateDto.last_name;
+    }
+    if (userUpdateDto.email) {
+      user.email = userUpdateDto.email;
+    }
+    return this.usersRepository.save(user);
   }
 }

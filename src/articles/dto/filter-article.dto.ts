@@ -23,6 +23,10 @@ export class FilterArticleDto {
 
   @IsOptional()
   @IsString()
+  almacen?: string;
+
+  @IsOptional()
+  @IsString()
   serialNumber?: string;
 
   @IsOptional()

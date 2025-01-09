@@ -24,4 +24,8 @@ export class CreateArticleDto {
   @IsNotEmpty()
   @IsNumber()
   factor: number;
+
+  @IsOptional()
+  @IsString()
+  almacen?: string;
 }

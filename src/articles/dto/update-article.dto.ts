@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateArticleDto {
   @IsNotEmpty()
@@ -28,4 +28,8 @@ export class UpdateArticleDto {
   @IsNotEmpty()
   @IsNumber()
   factor: number;
+
+  @IsOptional()
+  @IsString()
+  almacen?: string;
 }

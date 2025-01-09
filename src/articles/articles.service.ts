@@ -28,6 +28,7 @@ export class ArticlesService {
       multiple,
       name,
       serialNumber,
+      almacen,
     } = query;
 
     return await this.articlesRepository.findAndCount({
@@ -38,6 +39,7 @@ export class ArticlesService {
           barcode: barcode ? Like(`%${barcode}%`) : undefined,
           factor,
           multiple: multiple ? Like(`%${multiple}%`) : undefined,
+          almacen: almacen ? Like(`%${almacen}%`) : undefined,
           product: {
             name: name ? Like(`%${name}%`) : undefined,
             description: description ? Like(`%${description}%`) : undefined,
@@ -56,6 +58,12 @@ export class ArticlesService {
         },
         {
           multiple: search ? Like(`%${search}%`) : undefined,
+        },
+        {
+          almacen: search ? Like(`%${search}%`) : undefined,
+        },
+        {
+          factor: !isNaN(Number(search)) ? Number(search) : undefined,
         },
         {
           transactionDetails: {
@@ -82,6 +90,7 @@ export class ArticlesService {
     article.barcode = data.barcode;
     article.factor = data.factor;
     article.multiple = data.multiple;
+    article.almacen = data.almacen;
     return this.dataSource.transaction(async (manager) => {
       const response = await manager.save(article);
       return {
@@ -104,6 +113,7 @@ export class ArticlesService {
       article.barcode = createArticleDto.barcode;
       article.factor = createArticleDto.factor;
       article.multiple = createArticleDto.multiple;
+      article.almacen = createArticleDto.almacen;
       article.product = product;
       return await manager.save(article);
     });
