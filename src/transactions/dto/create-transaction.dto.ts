@@ -85,6 +85,10 @@ export class Unit {
   @IsNotEmpty()
   factor: number;
 
+  @IsNotEmpty()
+  @IsNumber()
+  warehouse: number;
+
   @IsNumber({ allowInfinity: false, allowNaN: false })
   @IsNotEmpty()
   quantity: number;

@@ -29,6 +29,11 @@ export class FilterProductDto {
   factor?: number;
 
   @IsOptional()
+  @IsNumber()
+  @NumberTransform()
+  warehouse?: number;
+
+  @IsOptional()
   @IsString()
   serialNumber?: string;
 

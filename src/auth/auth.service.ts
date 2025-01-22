@@ -14,10 +14,9 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<User> {
-    const passwordHash = bcrypt.hashSync(password, 10);
     const user: User = await this.usersService.findByEmailAndPassword(
       email,
-      passwordHash,
+      password,
     );
     if (!user) {
       throw new BadRequestException('User not found');

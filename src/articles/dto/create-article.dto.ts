@@ -24,4 +24,8 @@ export class CreateArticleDto {
   @IsNotEmpty()
   @IsNumber()
   factor: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  warehouse: number;
 }

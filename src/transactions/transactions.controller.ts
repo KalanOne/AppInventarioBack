@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { FilterTransactionDto } from './dto/filter-transaction.dto';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -16,5 +17,10 @@ export class TransactionsController {
   @Get(':id')
   async getTransaction(@Param('id') id: number) {
     return await this.transactionsService.getTransaction(id);
+  }
+
+  @Get('')
+  async getTransactions(@Query() filterTransactionDto: FilterTransactionDto) {
+    return await this.transactionsService.getTransactions(filterTransactionDto);
   }
 }

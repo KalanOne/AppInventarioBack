@@ -1,4 +1,5 @@
-import { IsNumberString, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { NumberTransform } from 'src/utils/decorators/transforms';
 
 export class FilterArticleDto {
   @IsOptional()
@@ -18,19 +19,27 @@ export class FilterArticleDto {
   multiple?: string;
 
   @IsOptional()
-  @IsNumberString()
+  @IsNumber()
+  @NumberTransform()
   factor?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @NumberTransform()
+  warehouse?: number;
 
   @IsOptional()
   @IsString()
   serialNumber?: string;
 
   @IsOptional()
-  @IsNumberString()
+  @IsNumber()
+  @NumberTransform()
   skip?: number;
 
   @IsOptional()
-  @IsNumberString()
+  @IsNumber()
+  @NumberTransform()
   limit?: number;
 
   @IsOptional()

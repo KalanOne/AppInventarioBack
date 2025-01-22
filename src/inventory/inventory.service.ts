@@ -26,6 +26,7 @@ export class InventoryService {
       name,
       serialNumber,
       id,
+      warehouse,
     } = query;
 
     return this.productRepository.findAndCount({
@@ -36,6 +37,7 @@ export class InventoryService {
           articles: {
             barcode: barcode ? Like(`%${barcode}%`) : undefined,
             factor,
+            warehouse: warehouse ? { id: warehouse } : undefined,
             multiple: multiple ? Like(`%${multiple}%`) : undefined,
             transactionDetails: {
               serialNumber: serialNumber
@@ -52,6 +54,11 @@ export class InventoryService {
         },
         {
           articles: { multiple: search ? Like(`%${search}%`) : undefined },
+        },
+        {
+          articles: {
+            warehouse: search ? { name: Like(`%${search}%`) } : undefined,
+          },
         },
         {
           articles: {
@@ -77,7 +84,8 @@ export class InventoryService {
         .select(
           `COALESCE(
               SUM(CASE
-                  WHEN t.transaction_type = 'ENTRY' THEN td.quantity * a.factor
+                  WHEN t.transaction_type = 'ENTRY' AND td.afectation = TRUE THEN td.quantity * a.factor
+                  WHEN t.transaction_type = 'ENTRY' AND td.afectation = FALSE THEN 0
                   WHEN t.transaction_type = 'EXIT' AND td.afectation = FALSE THEN 0
                   WHEN t.transaction_type = 'EXIT' AND td.afectation = TRUE THEN -td.quantity * a.factor
                   ELSE 0
