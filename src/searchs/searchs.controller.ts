@@ -20,4 +20,14 @@ export class SearchsController {
   async getTransactions() {
     return await this.searchsService.getTransactionsList();
   }
+
+  @Get("warehouses")
+  async searchWarehouses() {
+    return await this.searchsService.searchWarehouses();
+  }
+
+  @Get("users")
+  async searchUsers() {
+    return await this.searchsService.searchUsers();
+  }
 }

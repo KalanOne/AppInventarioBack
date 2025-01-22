@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/entities/entities/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { SearchArticleDto } from './dto/search-article.dto';
 import { Article } from 'src/entities/entities/article.entity';
 import { Transaction } from 'src/entities/entities/transaction.entity';
+import { Warehouse } from 'src/entities/entities/warehouse.entity';
+import { User } from 'src/entities/entities/user.entity';
 
 @Injectable()
 export class SearchsService {
@@ -15,6 +17,10 @@ export class SearchsService {
     private readonly articlesRepository: Repository<Article>,
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
+    @InjectRepository(Warehouse)
+    private readonly warehousesRepository: Repository<Warehouse>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async searchProducts() {
@@ -22,9 +28,19 @@ export class SearchsService {
   }
 
   async searchArticles(query: SearchArticleDto) {
-    const { id, barcode, multiple, factor } = query;
+    const { id, barcode, multiple, factor, product_id } = query;
     return this.articlesRepository.find({
-      where: [{ id }, { barcode }, { multiple, factor }, { ...query }],
+      where: [
+        { id },
+        { barcode },
+        { multiple, factor },
+        {
+          product: {
+            id:
+              product_id && product_id.length > 0 ? In(product_id) : undefined,
+          },
+        },
+      ],
     });
   }
 
@@ -95,5 +111,13 @@ export class SearchsService {
       },
       codes: [...(tx.serials ?? []), ...(tx.barcodes ?? [])],
     }));
+  }
+
+  async searchWarehouses() {
+    return this.warehousesRepository.find();
+  }
+
+  async searchUsers() {
+    return this.usersRepository.find();
   }
 }

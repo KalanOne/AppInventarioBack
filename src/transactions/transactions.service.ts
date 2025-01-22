@@ -4,7 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTransactionDto, Unit } from './dto/create-transaction.dto';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import {
+  Between,
+  DataSource,
+  EntityManager,
+  In,
+  Like,
+  Repository,
+} from 'typeorm';
 import { Product } from 'src/entities/entities/product.entity';
 import { Article } from 'src/entities/entities/article.entity';
 import { TransactionDetail } from 'src/entities/entities/transactionDetail.entity';
@@ -12,6 +19,9 @@ import { Transaction } from 'src/entities/entities/transaction.entity';
 import { ClsService } from 'nestjs-cls';
 import { User } from 'src/entities/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Warehouse } from 'src/entities/entities/warehouse.entity';
+import { FilterTransactionDto } from './dto/filter-transaction.dto';
+import { adequacyDateFilter } from 'src/utils/typeormUtils';
 
 @Injectable()
 export class TransactionsService {
@@ -32,6 +42,7 @@ export class TransactionsService {
       const user = this.cls.get<User>('user');
       transaction.user = user;
       transaction.transaction_date = createTransactionDto.transactionDate;
+      const warehouses = await manager.find(Warehouse);
 
       const entry = createTransactionDto.type === 'ENTRY';
 
@@ -53,7 +64,9 @@ export class TransactionsService {
         newArticle.barcode = unit.barcode;
         newArticle.multiple = unit.multiple;
         newArticle.factor = unit.factor;
-        newArticle.almacen = unit.almacen;
+        newArticle.warehouse = warehouses.find(
+          (warehouse) => warehouse.id === unit.warehouse,
+        );
         newArticle.product = newProduct;
         // const articleSaved = await manager.save(newArticle);
 
@@ -245,6 +258,80 @@ export class TransactionsService {
   }
 
   async getTransaction(id: number) {
-    return this.transactionRepository.findOne({ where: { id } });
+    return this.transactionRepository.findOneOrFail({ where: { id } });
+  }
+
+  async getTransactions(query: FilterTransactionDto) {
+    const {
+      transaction_type,
+      transaction_date,
+      user_id,
+      folio_number,
+      person_name,
+      product_id,
+      article_id,
+      limit,
+      skip,
+      search,
+    } = query;
+    return this.transactionRepository.findAndCount({
+      take: limit,
+      skip: skip,
+      where: [
+        {
+          transaction_type,
+          transaction_date: transaction_date
+            ? adequacyDateFilter(transaction_date)
+            : undefined,
+          user: { id: user_id && user_id.length > 0 ? In(user_id) : undefined },
+          folio_number: folio_number ? Like(`%${folio_number}%`) : undefined,
+          person_name: person_name ? Like(`%${person_name}%`) : undefined,
+          transactionDetails: {
+            article: {
+              product: {
+                id:
+                  product_id && product_id.length > 0
+                    ? In(product_id)
+                    : undefined,
+              },
+              id:
+                article_id && article_id.length > 0
+                  ? In(article_id)
+                  : undefined,
+            },
+          },
+        },
+        {
+          user: {
+            first_name: search ? Like(`%${search}%`) : undefined,
+          },
+        },
+        {
+          user: {
+            last_name: search ? Like(`%${search}%`) : undefined,
+          },
+        },
+        {
+          user: {
+            email: search ? Like(`%${search}%`) : undefined,
+          },
+        },
+        {
+          folio_number: search ? Like(`%${search}%`) : undefined,
+        },
+        {
+          person_name: search ? Like(`%${search}%`) : undefined,
+        },
+        {
+          transactionDetails: {
+            article: {
+              product: {
+                name: search ? Like(`%${search}%`) : undefined,
+              },
+            },
+          },
+        },
+      ],
+    });
   }
 }

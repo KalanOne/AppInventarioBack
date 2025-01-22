@@ -14,6 +14,10 @@ import { SearchsModule } from './searchs/searchs.module';
 import { UserInformationInterceptor } from './interceptors/user-information.interceptor';
 import { TransactionsModule } from './transactions/transactions.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { WarehousesModule } from './warehouses/warehouses.module';
+import { PdfModule } from './pdf-reports/pdf.module';
+import { DriveModule } from './drive/drive.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -33,7 +37,7 @@ import { InventoryModule } from './inventory/inventory.module';
         password: configService.getOrThrow('DB_PASSWORD'),
         logNotifications: true,
         autoLoadEntities: true,
-        synchronize: true, 
+        synchronize: true,
         logging: ['error', 'info', 'log', 'query', 'warn'],
         logger: MyCustomLogger.getInstance(configService, cls),
       }),
@@ -46,6 +50,10 @@ import { InventoryModule } from './inventory/inventory.module';
     SearchsModule,
     TransactionsModule,
     InventoryModule,
+    WarehousesModule,
+    PdfModule,
+    DriveModule,
+    ReportsModule,
   ],
   controllers: [],
   providers: [

@@ -6,7 +6,7 @@ function ArrayTransform({
   type,
 }: {
   each?: boolean;
-  type?: 'string' | 'number' | 'boolean';
+  type?: 'string' | 'number' | 'boolean' | 'date';
 }): PropertyDecorator {
   return Transform(({ value }) => {
     let result = [];
@@ -25,6 +25,8 @@ function ArrayTransform({
             return Number(item);
           case 'boolean':
             return Boolean(item);
+          case 'date':
+            return new Date(item);
           default:
             return item;
         }

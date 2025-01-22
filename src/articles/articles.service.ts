@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, Int32, Like, Repository } from 'typeorm';
 import { Article } from 'src/entities/entities/article.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FilterArticleDto } from './dto/filter-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { Product } from 'src/entities/entities/product.entity';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { Warehouse } from 'src/entities/entities/warehouse.entity';
 
 @Injectable()
 export class ArticlesService {
@@ -14,6 +15,8 @@ export class ArticlesService {
     private readonly articlesRepository: Repository<Article>,
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
+    @InjectRepository(Warehouse)
+    private readonly warehousesRepository: Repository<Warehouse>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -28,7 +31,7 @@ export class ArticlesService {
       multiple,
       name,
       serialNumber,
-      almacen,
+      warehouse,
     } = query;
 
     return await this.articlesRepository.findAndCount({
@@ -39,7 +42,7 @@ export class ArticlesService {
           barcode: barcode ? Like(`%${barcode}%`) : undefined,
           factor,
           multiple: multiple ? Like(`%${multiple}%`) : undefined,
-          almacen: almacen ? Like(`%${almacen}%`) : undefined,
+          warehouse: warehouse ? { id: warehouse } : undefined,
           product: {
             name: name ? Like(`%${name}%`) : undefined,
             description: description ? Like(`%${description}%`) : undefined,
@@ -60,10 +63,14 @@ export class ArticlesService {
           multiple: search ? Like(`%${search}%`) : undefined,
         },
         {
-          almacen: search ? Like(`%${search}%`) : undefined,
+          warehouse: search ? { name: Like(`%${search}%`) } : undefined,
         },
         {
-          factor: !isNaN(Number(search)) ? Number(search) : undefined,
+          factor: !isNaN(Number(search))
+            ? Number(search) < 2147483647
+              ? Number(search)
+              : undefined
+            : undefined,
         },
         {
           transactionDetails: {
@@ -84,13 +91,16 @@ export class ArticlesService {
     const article = await this.articlesRepository.findOneOrFail({
       where: { id: articleId },
     });
+    const warehouse = await this.warehousesRepository.findOneOrFail({
+      where: { id: data.warehouse },
+    });
     product.name = data.name;
     product.description = data.description;
     article.product = product;
     article.barcode = data.barcode;
     article.factor = data.factor;
     article.multiple = data.multiple;
-    article.almacen = data.almacen;
+    article.warehouse = warehouse;
     return this.dataSource.transaction(async (manager) => {
       const response = await manager.save(article);
       return {
@@ -102,6 +112,9 @@ export class ArticlesService {
 
   async create(createArticleDto: CreateArticleDto) {
     return this.dataSource.transaction(async (manager) => {
+      const warehouse = await manager.findOneOrFail(Warehouse, {
+        where: { id: createArticleDto.warehouse },
+      });
       const product = new Product();
       if (createArticleDto.productId) {
         product.id = createArticleDto.productId;
@@ -113,7 +126,7 @@ export class ArticlesService {
       article.barcode = createArticleDto.barcode;
       article.factor = createArticleDto.factor;
       article.multiple = createArticleDto.multiple;
-      article.almacen = createArticleDto.almacen;
+      article.warehouse = warehouse;
       article.product = product;
       return await manager.save(article);
     });

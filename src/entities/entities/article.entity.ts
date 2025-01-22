@@ -11,8 +11,11 @@ import {
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
+
 import { Product } from './product.entity';
 import { TransactionDetail } from './transactionDetail.entity';
+import { Warehouse } from './warehouse.entity';
+
 @Entity()
 export class Article {
   @PrimaryGeneratedColumn()
@@ -33,8 +36,11 @@ export class Article {
   @Column()
   factor: number;
 
-  @Column({ nullable: true })
-  almacen?: string;
+  @ManyToOne(() => Warehouse, (warehouse) => warehouse.articles, {
+    eager: true,
+    cascade: true,
+  })
+  warehouse: Warehouse;
 
   @OneToMany(
     () => TransactionDetail,
@@ -58,6 +64,5 @@ export class Article {
   @BeforeUpdate()
   unify() {
     this.multiple = this.multiple.toUpperCase();
-    this.almacen = this.almacen?.toUpperCase();
   }
 }

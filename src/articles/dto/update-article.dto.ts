@@ -29,7 +29,7 @@ export class UpdateArticleDto {
   @IsNumber()
   factor: number;
 
-  @IsOptional()
-  @IsString()
-  almacen?: string;
+  @IsNotEmpty()
+  @IsNumber()
+  warehouse: number;
 }

@@ -29,8 +29,9 @@ export class FilterProductDto {
   factor?: number;
 
   @IsOptional()
-  @IsString()
-  almacen?: string;
+  @IsNumber()
+  @NumberTransform()
+  warehouse?: number;
 
   @IsOptional()
   @IsString()
