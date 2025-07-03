@@ -1,6 +1,15 @@
-import { Controller, Get, Param, ParseIntPipe, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import { Response } from 'express';
+import { query, Response } from 'express';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { FilterReportInventarioDto } from './dto/filter-report-inventario.dto';
 
 @Controller('reports')
 export class ReportsController {
@@ -17,5 +26,20 @@ export class ReportsController {
       'Content-Disposition': 'attachment; filename="reprogramacion.pdf"',
     });
     res.end(pdf);
+  }
+
+  @Get('inventory')
+  @Public()
+  async getInventoryReport(
+    @Res() res: Response,
+    @Query() query: FilterReportInventarioDto,
+  ) {
+    const excel = await this.reportsService.exportInventoryExcel(query);
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="inventario.xlsx"',
+    });
+    res.end(excel);
   }
 }

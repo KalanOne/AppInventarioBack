@@ -23,7 +23,7 @@ async function bootstrap() {
     configService.getOrThrow('NEST_HOST'),
     () => {
       console.log(
-        `\x1b[35mServer running on \x1b[0m\x1b[95mhttp://${configService.getOrThrow('NEST_HOST')}:${configService.get('NEST_PORT') || 3000}\x1b[0m`,
+        `\x1b[35mServer running on \x1b[0m\x1b[95mhttp://${configService.getOrThrow('NEST_HOST')}:${configService.get('NEST_PORT') || 3003}\x1b[0m`,
       );
     },
   );

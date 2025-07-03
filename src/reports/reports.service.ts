@@ -1,9 +1,11 @@
 import { format } from '@formkit/tempo';
 import { Injectable } from '@nestjs/common';
+import { Workbook } from 'exceljs';
 import { Content, TDocumentDefinitions } from 'pdfmake/interfaces';
 import { Transaction } from 'src/entities/entities/transaction.entity';
 import { PdfService } from 'src/pdf-reports/pdf.service';
 import { DataSource } from 'typeorm';
+import { FilterReportInventarioDto } from './dto/filter-report-inventario.dto';
 
 @Injectable()
 export class ReportsService {
@@ -113,5 +115,167 @@ export class ReportsService {
         defaultFooter: true,
       });
     });
+  }
+
+  async exportInventoryExcel(
+    filterReportInventarioDto: FilterReportInventarioDto,
+  ) {
+    const query = this.dataSource.createQueryRunner();
+    const { includeNonAfectation } = filterReportInventarioDto;
+
+    try {
+      await query.connect();
+
+      const rawInventory = await query.manager.query(
+        `
+        -- Artículos SIN número de serie
+        SELECT
+          a.id AS article_id,
+          a.barcode,
+          a.multiple,
+          a.factor,
+          w.name AS warehouse,
+          p.name AS product,
+          p.description AS product_description,
+          NULL AS serial_number,
+          SUM(
+            CASE 
+              WHEN td.afectation = TRUE THEN 
+                CASE 
+                  WHEN t.transaction_type = 'ENTRY' THEN td.quantity * a.factor
+                  WHEN t.transaction_type = 'EXIT' THEN -td.quantity * a.factor
+                  ELSE 0
+                END
+              WHEN td.afectation = FALSE AND $1 = TRUE THEN 
+                CASE 
+                  WHEN t.transaction_type = 'ENTRY' THEN td.quantity * a.factor
+                  WHEN t.transaction_type = 'EXIT' THEN -td.quantity * a.factor
+                  ELSE 0
+                END
+              ELSE 0
+            END
+          ) AS total,
+          '' AS serials
+        FROM transaction_detail td
+        INNER JOIN transaction t ON t.id = td."transactionId"
+        INNER JOIN article a ON a.id = td."articleId"
+        INNER JOIN product p ON p.id = a."productId"
+        INNER JOIN warehouse w ON w.id = a."warehouseId"
+        WHERE td."serialNumber" IS NULL
+        GROUP BY a.id, a.barcode, a.multiple, a.factor, w.name, p.name, p.description
+      
+        UNION
+      
+        -- Artículos CON número de serie (último movimiento indica si está dentro)
+        SELECT
+          a.id AS article_id,
+          a.barcode,
+          a.multiple,
+          a.factor,
+          w.name AS warehouse,
+          p.name AS product,
+          p.description AS product_description,
+          serial_data."serialNumber",
+          1 AS total,
+          serial_data."serialNumber" AS serials
+        FROM (
+          SELECT DISTINCT ON (td."serialNumber")
+            td."serialNumber",
+            td.afectation,
+            t.transaction_type,
+            td."articleId"
+          FROM transaction_detail td
+          INNER JOIN transaction t ON t.id = td."transactionId"
+          WHERE td."serialNumber" IS NOT NULL
+          ORDER BY td."serialNumber", td."createdAt" DESC
+        ) AS serial_data
+        INNER JOIN article a ON a.id = serial_data."articleId"
+        INNER JOIN product p ON p.id = a."productId"
+        INNER JOIN warehouse w ON w.id = a."warehouseId"
+        WHERE 
+          (
+            serial_data.transaction_type = 'ENTRY'
+            OR (
+              serial_data.transaction_type = 'EXIT'
+              AND (
+                (serial_data.afectation = FALSE AND $1 = TRUE)
+              )
+            )
+          )
+        `,
+        [includeNonAfectation],
+      );
+
+      // Agrupamos por artículo
+      const inventoryMap = new Map<
+        number,
+        {
+          articleId: number;
+          barcode: string;
+          multiple: string;
+          factor: number;
+          warehouse: string;
+          product: string;
+          product_description: string;
+          total: number;
+          serials: Set<string>;
+        }
+      >();
+
+      for (const row of rawInventory) {
+        const key = row.article_id;
+        if (!inventoryMap.has(key)) {
+          inventoryMap.set(key, {
+            articleId: key,
+            barcode: row.barcode,
+            multiple: row.multiple,
+            factor: row.factor,
+            warehouse: row.warehouse,
+            product: row.product,
+            product_description: row.product_description,
+            total: 0,
+            serials: new Set<string>(),
+          });
+        }
+
+        const entry = inventoryMap.get(key);
+        entry.total += Number(row.total);
+        if (row.serialNumber) {
+          entry.serials.add(row.serialNumber);
+        }
+      }
+
+      // Crear archivo Excel
+      const workbook = new Workbook();
+      const sheet = workbook.addWorksheet('Inventario');
+
+      sheet.columns = [
+        { header: 'Producto', key: 'product', width: 30 },
+        { header: 'Descripción', key: 'product_description', width: 40 },
+        { header: 'Código de barras', key: 'barcode', width: 25 },
+        { header: 'Múltiplo', key: 'multiple', width: 15 },
+        { header: 'Factor', key: 'factor', width: 10 },
+        { header: 'Almacén', key: 'warehouse', width: 20 },
+        { header: 'Cantidad total', key: 'total', width: 20 },
+        { header: 'Números de serie', key: 'serials', width: 50 },
+      ];
+
+      for (const item of inventoryMap.values()) {
+        sheet.addRow({
+          product: item.product,
+          product_description: item.product_description,
+          barcode: item.barcode,
+          multiple: item.multiple,
+          factor: item.factor,
+          warehouse: item.warehouse,
+          total: item.total,
+          serials: Array.from(item.serials).join(', '),
+        });
+      }
+
+      return workbook.xlsx.writeBuffer();
+    } finally {
+      await query.release();
+    }
   }
 }
