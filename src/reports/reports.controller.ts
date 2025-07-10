@@ -29,7 +29,6 @@ export class ReportsController {
   }
 
   @Get('inventory')
-  @Public()
   async getInventoryReport(
     @Res() res: Response,
     @Query() query: FilterReportInventarioDto,
