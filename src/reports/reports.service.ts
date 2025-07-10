@@ -128,7 +128,7 @@ export class ReportsService {
 
       const rawInventory = await query.manager.query(
         `
-        -- Artículos SIN número de serie
+        -- Artículos SIN número de serie (con transacciones)
         SELECT
           a.id AS article_id,
           a.barcode,
@@ -163,9 +163,9 @@ export class ReportsService {
         INNER JOIN warehouse w ON w.id = a."warehouseId"
         WHERE td."serialNumber" IS NULL
         GROUP BY a.id, a.barcode, a.multiple, a.factor, w.name, p.name, p.description
-      
+  
         UNION
-      
+  
         -- Artículos CON número de serie (último movimiento indica si está dentro)
         SELECT
           a.id AS article_id,
@@ -202,11 +202,31 @@ export class ReportsService {
               )
             )
           )
+  
+        UNION
+  
+        -- Artículos sin ninguna transacción registrada
+        SELECT
+          a.id AS article_id,
+          a.barcode,
+          a.multiple,
+          a.factor,
+          w.name AS warehouse,
+          p.name AS product,
+          p.description AS product_description,
+          NULL AS serial_number,
+          0 AS total,
+          '' AS serials
+        FROM article a
+        LEFT JOIN transaction_detail td ON td."articleId" = a.id
+        INNER JOIN product p ON p.id = a."productId"
+        INNER JOIN warehouse w ON w.id = a."warehouseId"
+        WHERE td.id IS NULL
         `,
         [includeNonAfectation],
       );
 
-      // Agrupamos por artículo
+      // Agrupar por artículo
       const inventoryMap = new Map<
         number,
         {
@@ -240,8 +260,8 @@ export class ReportsService {
 
         const entry = inventoryMap.get(key);
         entry.total += Number(row.total);
-        if (row.serialNumber) {
-          entry.serials.add(row.serialNumber);
+        if (row.serial_number) {
+          entry.serials.add(row.serial_number);
         }
       }
 
