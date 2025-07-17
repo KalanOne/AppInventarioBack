@@ -11,6 +11,7 @@ import {
 } from 'pdfmake/interfaces';
 import { DriveService } from 'src/drive/drive.service';
 import { Readable } from 'stream';
+import * as path from 'path';
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
@@ -71,21 +72,28 @@ export class PdfService {
 
     let fontDescriptors: TFontDictionary = {
       Roboto: {
-        normal: 'src/pdf-reports/fonts/Roboto/Roboto-Regular.ttf',
-        bold: 'src/pdf-reports/fonts/Roboto/Roboto-Medium.ttf',
-        italics: 'src/pdf-reports/fonts/Roboto/Roboto-Italic.ttf',
-        bolditalics: 'src/pdf-reports/fonts/Roboto/Roboto-MediumItalic.ttf',
+        normal: path.join(__dirname, 'fonts/Roboto/Roboto-Regular.ttf'),
+        bold: path.join(__dirname, 'fonts/Roboto/Roboto-Medium.ttf'),
+        italics: path.join(__dirname, 'fonts/Roboto/Roboto-Italic.ttf'),
+        bolditalics: path.join(
+          __dirname,
+          'fonts/Roboto/Roboto-MediumItalic.ttf',
+        ),
       },
       'Rubik Wet Paint': {
-        normal:
-          'src/pdf-reports/fonts/Rubik_Wet_Paint/RubikWetPaint-Regular.ttf',
+        normal: path.join(
+          __dirname,
+          'fonts/Rubik_Wet_Paint/RubikWetPaint-Regular.ttf',
+        ),
       },
       'Open Sans': {
-        normal: 'src/pdf-reports/fonts/Open_Sans/OpenSans_Regular.ttf',
-        italics: 'src/pdf-reports/fonts/Open_Sans/OpenSans_Italic.ttf',
-        bold: 'src/pdf-reports/fonts/Open_Sans/static/OpenSans-Bold.ttf',
-        bolditalics:
-          'src/pdf-reports/fonts/Open_Sans/static/OpenSans-BoldItalic.ttf',
+        normal: path.join(__dirname, 'fonts/Open_Sans/OpenSans_Regular.ttf'),
+        italics: path.join(__dirname, 'fonts/Open_Sans/OpenSans_Italic.ttf'),
+        bold: path.join(__dirname, 'fonts/Open_Sans/static/OpenSans-Bold.ttf'),
+        bolditalics: path.join(
+          __dirname,
+          'fonts/Open_Sans/static/OpenSans-BoldItalic.ttf',
+        ),
       },
     };
 
@@ -101,8 +109,8 @@ export class PdfService {
         '1--PvNqx2RwyJLcMfMrClrabso3aXblY0',
         '15D4gNALmZXds8Q6W9JihFM3ZOCt241wv',
       ]);
-      const dimensionsCecytemLogo = imageSize(logos[0].buffer);
-      const dimensionsMichoacanLogo = imageSize(logos[1].buffer);
+      const dimensionsCecytemLogo = imageSize(logos[0].buffer as Uint8Array);
+      const dimensionsMichoacanLogo = imageSize(logos[1].buffer as Uint8Array);
       docDefinition.images = {
         ...(docDefinition.images || {}),
         logoCecytem: `data:image/jpeg;base64,${logos[0].buffer.toString(
